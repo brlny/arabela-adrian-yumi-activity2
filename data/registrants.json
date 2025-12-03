@@ -1,0 +1,14 @@
+{
+  "registrants": [
+    {
+      "id": 1,
+      "firstname": "John",
+      "lastname": "Doe",
+      "contactNumber": "09123456789",
+      "chapter": "Manila",
+      "email": "john.doe@example.com",
+      "filename": "resume.pdf",
+      "timestamp": "2025-12-03T01:50:41.824Z"
+    }
+  ]
+}
