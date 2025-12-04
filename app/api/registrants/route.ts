@@ -13,6 +13,7 @@ type Registrant = {
   filename: string;
 };
 
+
 const dataFolderPath = path.join(process.cwd(), "data");
 const dataFilePath = path.join(dataFolderPath, "registrants.json");
 
@@ -78,6 +79,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { message: "Failed to register", error: err.message },
       { status: 500 }
+      
     );
   }
 }

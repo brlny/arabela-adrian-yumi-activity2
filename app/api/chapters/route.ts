@@ -1,67 +1,56 @@
-/**
- * API route handler for managing chapters inside `registrants.json`.
- * 
- * This module uses stuff like:
- * - "NextResponse" for sending API responses
- * - "fs/promises" for async file operations
- * - "path" for resolving file paths
- */
-
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-/**
- * Absolute path to `registrants.json` inside the project's `data` folder.
- * 
- * Using `process.cwd()` ensures the path dynamically points to the project root,
- * rather than relying on hardcoded directory structures.
- */
-
+const chaptersFilePath = path.join(process.cwd(), "data", "chapters.json");
 const filePath = path.join(process.cwd(), "data", "registrants.json");
 
-/**
-*
-*nag define ako type Chapter para ma specify yung structure ng chapter object sa json ko.
-*also dapat daw i define since ayun daw ung mas ok
-*/
 type Chapter = {
   id: number;
   chapterName: string;
   createdAt: string;
 };
 
-/**
- * Reads the current list of chapters from `registrants.json`.
- *
- * @returns Promise<Chapter[]> - an array of Chapter objects
- *
- * This function:
- * - Loads and parses the JSON file
- * - Extracts `data.chapters`
- * - Returns the chapter list for use in update/delete operations
- */
+interface Registrant {
+  id: string;
+  firstname: string;
+  lastname: string;
+  contactnumber: string;
+  chapter: string;
+  email: string;
+  filename: string;
+}
+
+async function readJSONFile<T>(filePath: string, arrayKey: string): Promise<{ [key: string]: T[] }> {
+  try {
+    const file = await fs.readFileSync(filePath, "utf-8");
+    const data = JSON.parse(filePath);
+    if (!data[arrayKey] || !Array.isArray(data[arrayKey])) {
+      return { [arrayKey]: [] };
+    }
+    return data;
+  } catch (error) {
+    console.error(`Error reading ${filePath}:`, error);
+    return { [arrayKey]: [] };
+  }
+}
 
 async function readChapters(): Promise<Chapter[]> {
   const file = fs.readFileSync(filePath, "utf-8");
   const data = JSON.parse(filePath);
   return data.chapters as Chapter[];
 }
-/**
- * Writes an updated chapters array back to `registrants.json`.
- *
- * @param chapters - updated chapters array
- *
- * This function:
- * - Loads the current JSON file
- * - Replaces its `chapters` field with the updated array
- * - Writes the modified object back to disk
- */
+
 async function writeChapters(chapters: Chapter[]): Promise<void> {
-  const file = fs.readFileSync(filePath, "utf-8");
-  const data = JSON.parse(file);
+  const file = fs.readFileSync(filePath);
+  const data = JSON.parse(filePath);
   data.chapters = chapters;
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
+export async function GET() {
+  const data = await readJSONFile<Chapter>(chaptersFilePath, "chapters");
+  return NextResponse.json(data.chapters, { status: 200 });
 }
 
 export async function POST(req: NextRequest) {
@@ -117,24 +106,6 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-
-
-/**
- * Updates an existing chapter.
- * 
- * Request body must include:
- * - `id` — the chapter ID to update
- * - `chapterName` — the new chapter name
- * 
- * Process:
- * 1. Validate request body
- * 2. Load current chapters
- * 3. Check if the chapter exists
- * 4. Update the chapter name
- * 5. Save the updated chapters array
- * 6. Return a success response
- */
 
 export async function PUT(request: Request) {
   try {
@@ -216,9 +187,3 @@ export async function DELETE(request: Request) {
         { status: 500 });
   }
 }
-
-
-
-
-
-
