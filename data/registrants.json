@@ -1,0 +1,22 @@
+{
+  "registrants": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "firstname": "Arabela",
+      "lastname": "Dummy",
+      "contactnumber": "09171234567",
+      "chapter": "Cavite Chapter",
+      "email": "yumi@example.com",
+      "filename": "profile-picture.jpg"
+    },
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174001",
+      "firstname": "Yumi",
+      "lastname": "Dummy",
+      "contactnumber": "09171234567",
+      "chapter": "Cavite Chapter",
+      "email": "yumi@example.com",
+      "filename": "profile-picture.jpg"
+    }
+     ]
+}
