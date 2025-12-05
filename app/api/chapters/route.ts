@@ -7,8 +7,8 @@
  * - "path" for resolving file paths
  */
 
-import { NextResponse } from "next/server";
-import fs from "fs/promises";
+import { NextRequest, NextResponse } from "next/server";
+import fs from "fs";
 import path from "path";
 
 /**
@@ -28,6 +28,7 @@ const filePath = path.join(process.cwd(), "data", "registrants.json");
 type Chapter = {
   id: number;
   chapterName: string;
+  createdAt: string;
 };
 
 /**
@@ -42,8 +43,8 @@ type Chapter = {
  */
 
 async function readChapters(): Promise<Chapter[]> {
-  const file = await fs.readFile(filePath, "utf-8");
-  const data = JSON.parse(file);
+  const file = fs.readFileSync(filePath, "utf-8");
+  const data = JSON.parse(filePath);
   return data.chapters as Chapter[];
 }
 /**
@@ -57,11 +58,51 @@ async function readChapters(): Promise<Chapter[]> {
  * - Writes the modified object back to disk
  */
 async function writeChapters(chapters: Chapter[]): Promise<void> {
-  const file = await fs.readFile(filePath, "utf-8");
+  const file = fs.readFileSync(filePath, "utf-8");
   const data = JSON.parse(file);
   data.chapters = chapters;
-  await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+
+    // Support single object or array
+    const chaptersToAdd: { name: string }[] = Array.isArray(body) ? body : [body];
+
+    // Validate all items
+    if (!chaptersToAdd.every(c => c.name && typeof c.name === "string")) {
+      return NextResponse.json({ error: "Each chapter must have a valid name" }, { status: 400 });
+    }
+
+    // Read existing chapters
+    let existingChapters: Chapter[] = [];
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, "utf-8");
+      if (data) existingChapters = JSON.parse(data);
+    }
+
+    const lastId = existingChapters.length > 0 ? Math.max(...existingChapters.map(c => c.id)) : 0;
+
+    // Add new chapters
+    const newChapters: Chapter[] = chaptersToAdd.map((c, index) => ({
+      id: lastId + index + 1,
+      chapterName: c.name,
+      createdAt: new Date().toISOString(),
+    }));
+
+    const updatedChapters = [...existingChapters, ...newChapters];
+    fs.writeFileSync(filePath, JSON.stringify(updatedChapters, null, 2), "utf-8");
+
+    return NextResponse.json({ message: "Chapters added", chapters: newChapters }, { status: 201 });
+  } catch (err) {
+    console.error("Chapters POST error:", err);
+    return NextResponse.json({ error: "Failed to add chapters" }, { status: 500 });
+  }
+}
+
+
 
 /**
  * Updates an existing chapter.
