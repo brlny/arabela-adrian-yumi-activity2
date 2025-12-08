@@ -2,23 +2,67 @@
   "registrants": [
     {
       "id": 1,
-      "firstname": "John",
-      "lastname": "Doe",
-      "contactNumber": "09171234567",
-      "chapter": "Introduction",
-      "email": "john.doe@example.com",
-      "filename": "profile.jpg",
-      "timestamp": "2025-12-04T01:08:02.203Z"
+      "firstname": "Yumi Updated",
+      "lastname": "Gamazon",
+      "contactNumber": "09123456789",
+      "chapter": "BetGRW",
+      "email": "yumi1@test.com",
+      "filename": "file1.jpg",
+      "timestamp": "2025-11-22T03:27:51.043Z"
     },
     {
       "id": 2,
-      "firstname": "John",
-      "lastname": "Doe",
-      "contactNumber": "09171234567",
-      "chapter": "All-Star",
-      "email": "john.doe@example.com",
-      "filename": "profile.jpg",
-      "timestamp": "2025-12-04T01:19:20.497Z"
+      "firstname": "Miguel",
+      "lastname": "Santos",
+      "contactNumber": "09223334444",
+      "chapter": "BNI",
+      "email": "miguel@test.com",
+      "filename": "file2.jpg",
+      "timestamp": "2025-11-22T03:30:00.000Z"
+    },
+    {
+      "id": 3,
+      "firstname": "Adrian TEST3",
+      "lastname": "Reyes",
+      "contactNumber": "09335556666",
+      "chapter": "BNI",
+      "email": "adriantest3@mail.com",
+      "filename": "file3.jpg",
+      "timestamp": "2025-11-22T03:35:00.000Z"
+    },
+    {
+      "id": 4,
+      "firstname": "Carlos",
+      "lastname": "Garcia",
+      "contactNumber": "09446667777",
+      "chapter": "BNI",
+      "email": "carlos@test.com",
+      "filename": "file4.jpg",
+      "timestamp": "2025-11-22T03:40:00.000Z"
+    },
+    {
+      "id": 5,
+      "firstname": "aidputtest4",
+      "lastname": "adriantesting",
+      "contactNumber": "09557778888",
+      "chapter": "BNI",
+      "email": "liza@test.com",
+      "filename": "file5.jpg",
+      "timestamp": "2025-11-22T03:45:00.000Z"
+    }
+  ],
+  "chapters": [
+    {
+      "id": 2,
+      "chapterName": "BetGRW"
+    },
+    {
+      "id": 3,
+      "chapterName": "adriantest2"
+    },
+    {
+      "id": 4,
+      "chapterName": "GRiT"
     }
   ]
 }
