@@ -1,80 +1,118 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import { promises as fsPromises } from "fs";
+import fs from "fs/promises";
 import path from "path";
 
-const dataFolderPath = path.join(process.cwd(), "data");
-const dataFilePath = path.join(dataFolderPath, "registrants.json");
+// Path to: <project-root>/data/registrants.json
+const dataFilePath = path.join(process.cwd(), "data", "registrants.json");
 
-type Registrant = {
-  id: number;
+/**
+ * Type representing a single registrant record.
+ * This should match the structure inside registrants.json
+ */
+interface Registrant {
+  id: string;
   firstname: string;
   lastname: string;
-  contactNumber: string;
+  contactnumber: string;
   chapter: string;
   email: string;
   filename: string;
-  timestamp: string;
-};
+}
 
-export async function POST(request: NextRequest) {
+/**
+ * Helper function to read and parse registrants.json
+ */
+
+async function readData(): Promise<{ registrants: Registrant[] }> {
   try {
-    const raw = await request.text();
-    if (!raw || raw.trim().length === 0) {
-      return NextResponse.json({ message: "Request body is empty" }, { status: 400 });
+    const file = await fs.readFile(dataFilePath, "utf-8");
+
+    const data = JSON.parse(file); 
+
+    if (!data.registrants || !Array.isArray(data.registrants)) {
+      console.error("registrants is missing or not array");
+      return { registrants: [] };
     }
 
-    let body: any;
-    try {
-      body = JSON.parse(raw);
-    } catch (err) {
-      return NextResponse.json({ message: "Invalid JSON", error: (err as Error).message }, { status: 400 });
-    }
+    return data;
+  } catch (error) {
+    console.error("Error reading registrants.json:", error);
+    return { registrants: [] };
+  }
+}
 
-    const { firstname, lastname, contactNumber, chapter, email, filename } = body;
-    if (!firstname || !lastname || !contactNumber || !chapter || !email || !filename) {
-      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
-    }
+/**
+ * Helper function to write data back to registrants.json
+ */
+async function writeData(data: { registrants: Registrant[] }) {
+  await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), "utf-8");
+}
 
-    if (!fs.existsSync(dataFolderPath)) {
-      fs.mkdirSync(dataFolderPath, { recursive: true });
-    }
+/**
+ * GET /api/registrants
+ * Returns the full list of registrants.
+ */
+export async function GET() {
+  const data = await readData();
+  return NextResponse.json(data.registrants, { status: 200 });
+}
 
-    if (!fs.existsSync(dataFilePath)) {
-      await fsPromises.writeFile(dataFilePath, JSON.stringify({ registrants: [] }, null, 2), "utf-8");
-    }
-
-    const rawFile = await fsPromises.readFile(dataFilePath, "utf-8");
-    let fileData: { registrants: Registrant[] } = { registrants: [] };
-    if (rawFile && rawFile.trim().length > 0) {
-      try {
-        fileData = JSON.parse(rawFile);
-        if (!Array.isArray(fileData.registrants)) fileData.registrants = [];
-      } catch {
-        fileData = { registrants: [] };
-      }
-    }
-
-    const newId = fileData.registrants.length > 0 ? Math.max(...fileData.registrants.map(r => r.id)) + 1 : 1;
-
-    const newRegistrant: Registrant = {
-      id: newId,
+/**
+ * POST /api/registrants
+ * Creates a new registrant and appends it to the JSON file.
+ */
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const {
       firstname,
       lastname,
-      contactNumber,
+      contactnumber,
       chapter,
       email,
       filename,
-      timestamp: new Date().toISOString(),
+    } = body;
+
+    if (
+      !firstname ||
+      !lastname ||
+      !contactnumber ||
+      !chapter ||
+      !email ||
+      !filename
+    ) {
+      return NextResponse.json(
+        { message: "All fields are required." },
+        { status: 400 }
+      );
+    }
+
+    const data = await readData();
+    const { registrants } = data;
+
+    // Generate proper UUID as unique ID
+    const uniqueId = crypto.randomUUID();
+
+    const newRegistrant: Registrant = {
+      id: uniqueId,
+      firstname,
+      lastname,
+      contactnumber,
+      chapter,
+      email,
+      filename,
     };
 
-    fileData.registrants.push(newRegistrant);
+    registrants.push(newRegistrant);
 
-    await fsPromises.writeFile(dataFilePath, JSON.stringify(fileData, null, 2), "utf-8");
+    await writeData({ registrants });
 
-    return NextResponse.json({ message: "Registrant added successfully", registrant: newRegistrant }, { status: 201 });
-  } catch (err) {
-    console.error("POST Error:", err);
-    return NextResponse.json({ message: "Failed to register", error: (err as Error).message }, { status: 500 });
+    return NextResponse.json(newRegistrant, { status: 201 });
+  } catch (error) {
+    console.error("Error in POST /api/registrants:", error);
+    return NextResponse.json(
+      { message: "Failed to create registrant" },
+      { status: 500 }
+    );
   }
 }
