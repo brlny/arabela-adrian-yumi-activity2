@@ -3,9 +3,6 @@ import fs from "fs";
 import { promises as fsPromises } from "fs";
 import path from "path";
 
-const dataFolderPath = path.join(process.cwd(), "data");
-const dataFilePath = path.join(dataFolderPath, "registrants.json");
-
 type Registrant = {
   id: number;
   firstname: string;
@@ -16,7 +13,9 @@ type Registrant = {
   filename: string;
 };
 
-// iprocces ng backend ung request and mapupunta sa db//
+const dataFolderPath = path.join(process.cwd(), "data");
+const dataFilePath = path.join(dataFolderPath, "registrants.json");
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -32,50 +31,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
-    // Save file to /public/uploads
+    // Save uploaded file
     const uploadDir = path.join(process.cwd(), "public", "uploads");
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-    const fileBytes = Buffer.from(await file.arrayBuffer());
     const filePath = path.join(uploadDir, file.name);
-
+    const fileBytes = Buffer.from(await file.arrayBuffer());
     fs.writeFileSync(filePath, fileBytes);
 
-    // Save record
-    const dataFolderPath = path.join(process.cwd(), "data");
-    const dataFilePath = path.join(dataFolderPath, "registrants.json");
-
-    if (!fs.existsSync(dataFolderPath)) {
-      fs.mkdirSync(dataFolderPath, { recursive: true });
-    }
-
+    // Ensure data folder & JSON exist
+    if (!fs.existsSync(dataFolderPath)) fs.mkdirSync(dataFolderPath, { recursive: true });
     if (!fs.existsSync(dataFilePath)) {
-      await fsPromises.writeFile(
-        dataFilePath,
-        JSON.stringify({ registrants: [] }, null, 2),
-        "utf-8"
-      );
+      await fsPromises.writeFile(dataFilePath, JSON.stringify({ registrants: [] }, null, 2));
     }
 
+    // Read existing registrants
     const rawFile = await fsPromises.readFile(dataFilePath, "utf-8");
-    const fileData = JSON.parse(rawFile);
+    const fileData = rawFile ? JSON.parse(rawFile) : { registrants: [] };
 
-    const newId = fileData.registrants.length > 0
-      ? Math.max(...fileData.registrants.map((r: any) => r.id)) + 1
-      : 1;
+    // Generate new ID
+    const newId =
+      fileData.registrants.length > 0
+        ? Math.max(...fileData.registrants.map((r: any) => r.id)) + 1
+        : 1;
 
-    const newRegistrant = {
+    const newRegistrant: Registrant = {
       id: newId,
       firstname,
       lastname,
       contactNumber,
       chapter,
       email,
-      filename: file.name, // actual filename
+      filename: file.name,
     };
 
     fileData.registrants.push(newRegistrant);
 
+    // Save updated JSON
     await fsPromises.writeFile(dataFilePath, JSON.stringify(fileData, null, 2));
 
     return NextResponse.json(
@@ -83,10 +74,10 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (err: any) {
+    console.error("POST Error:", err);
     return NextResponse.json(
       { message: "Failed to register", error: err.message },
       { status: 500 }
     );
   }
 }
-
