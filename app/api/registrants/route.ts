@@ -19,32 +19,31 @@ type Registrant = {
 // iprocces ng backend ung request and mapupunta sa db//
 export async function POST(request: NextRequest) {
   try {
-    const raw = await request.text();
-    if (!raw || raw.trim().length === 0) {
-      return NextResponse.json(  // ilalabas sa frontend if success or not //
-        { message: "Request body is empty" },
-        { status: 400 }
-      );
+    const formData = await request.formData();
+
+    const firstname = formData.get("firstname") as string;
+    const lastname = formData.get("lastname") as string;
+    const email = formData.get("email") as string;
+    const contactNumber = formData.get("contactNumber") as string;
+    const chapter = formData.get("chapter") as string;
+    const file = formData.get("file") as File;
+
+    if (!firstname || !lastname || !email || !contactNumber || !chapter || !file) {
+      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
-    let body: any;
-    try {
-      body = JSON.parse(raw);
-    } catch (err) {
-      return NextResponse.json(
-        { message: "Invalid JSON", error: (err as Error).message },
-        { status: 400 }
-      );
-    }
+    // Save file to /public/uploads
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-    const { firstname, lastname, contactNumber, chapter, email, filename } = body;
+    const fileBytes = Buffer.from(await file.arrayBuffer());
+    const filePath = path.join(uploadDir, file.name);
 
-    if (!firstname || !lastname || !contactNumber || !chapter || !email || !filename) {
-      return NextResponse.json(
-        { message: "Missing required fields" },
-        { status: 400 }
-      );
-    }
+    fs.writeFileSync(filePath, fileBytes);
+
+    // Save record
+    const dataFolderPath = path.join(process.cwd(), "data");
+    const dataFilePath = path.join(dataFolderPath, "registrants.json");
 
     if (!fs.existsSync(dataFolderPath)) {
       fs.mkdirSync(dataFolderPath, { recursive: true });
@@ -59,49 +58,35 @@ export async function POST(request: NextRequest) {
     }
 
     const rawFile = await fsPromises.readFile(dataFilePath, "utf-8");
-    let fileData: { registrants: Registrant[] } = { registrants: [] };
+    const fileData = JSON.parse(rawFile);
 
-    if (rawFile && rawFile.trim().length > 0) {
-      try {
-        fileData = JSON.parse(rawFile);
-        if (!Array.isArray(fileData.registrants)) fileData.registrants = [];
-      } catch {
-        fileData = { registrants: [] };
-      }
-    }
+    const newId = fileData.registrants.length > 0
+      ? Math.max(...fileData.registrants.map((r: any) => r.id)) + 1
+      : 1;
 
-    const newId =
-      fileData.registrants.length > 0
-        ? Math.max(...fileData.registrants.map((r) => r.id)) + 1
-        : 1;
-
-    const newRegistrant: Registrant = {
+    const newRegistrant = {
       id: newId,
       firstname,
       lastname,
       contactNumber,
       chapter,
       email,
-      filename,
+      filename: file.name, // actual filename
     };
 
     fileData.registrants.push(newRegistrant);
 
-    await fsPromises.writeFile(
-      dataFilePath,
-      JSON.stringify(fileData, null, 2),
-      "utf-8"
-    );
+    await fsPromises.writeFile(dataFilePath, JSON.stringify(fileData, null, 2));
 
     return NextResponse.json(
       { message: "Registrant added successfully", registrant: newRegistrant },
       { status: 201 }
     );
-  } catch (err) {
-    console.error("POST Error:", err);
+  } catch (err: any) {
     return NextResponse.json(
-      { message: "Failed to register", error: (err as Error).message },
+      { message: "Failed to register", error: err.message },
       { status: 500 }
     );
   }
 }
+
