@@ -114,8 +114,6 @@
       "chapter": "chapter3",
       "email": "borlongany@students.nu-fairview.edu.ph",
       "filename": "travel.png"
-<<<<<<< HEAD
-=======
     },
     {
       "id": 13,
@@ -125,6 +123,8 @@
       "chapter": "Catalyst",
       "email": "borlongany@students.nu-fairview.edu.ph",
       "filename": "travel.png"
+    },
+    {
       "firstname": "Miguel",
       "lastname": "Santos",
       "contactNumber": "09223334444",
@@ -132,7 +132,6 @@
       "email": "miguel@test.com",
       "filename": "file2.jpg",
       "timestamp": "2025-11-22T03:30:00.000Z"
->>>>>>> 83202b66e3fe726c6bdc02e28dbb398fd1688f3d
     },
     {
       "id": 3,
