@@ -1,82 +1,96 @@
-import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import { promises as fsPromises } from "fs";
+import { NextResponse } from "next/server";
+import fs from "fs/promises";
 import path from "path";
 
-type Registrant = {
-  id: number;
-  firstname: string;
-  lastname: string;
-  contactNumber: string;
-  chapter: string;
-  email: string;
-  filename: string;
-};
+/**
+ * Disable default body parsing
+ * (required for FormData handling)
+ */
+export const runtime = "nodejs";
 
-const dataFolderPath = path.join(process.cwd(), "data");
-const dataFilePath = path.join(dataFolderPath, "registrants.json");
-
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const formData = await request.formData();
+    const formData = await req.formData();
 
-    const firstname = formData.get("firstname") as string;
-    const lastname = formData.get("lastname") as string;
+    // Extract fields
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
     const email = formData.get("email") as string;
     const contactNumber = formData.get("contactNumber") as string;
     const chapter = formData.get("chapter") as string;
-    const file = formData.get("file") as File;
+    const receipt = formData.get("receipt") as File;
 
-    if (!firstname || !lastname || !email || !contactNumber || !chapter || !file) {
-      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+    if (!receipt) {
+      return NextResponse.json(
+        { message: "Receipt file is required" },
+        { status: 400 }
+      );
     }
 
-    // Save uploaded file
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-    const filePath = path.join(uploadDir, file.name);
-    const fileBytes = Buffer.from(await file.arrayBuffer());
-    fs.writeFileSync(filePath, fileBytes);
+    /**
+     * Save receipt file
+     */
+    const uploadDir = path.join(
+      process.cwd(),
+      "public/uploads/receipts"
+    );
+    await fs.mkdir(uploadDir, { recursive: true });
 
-    // Ensure data folder & JSON exist
-    if (!fs.existsSync(dataFolderPath)) fs.mkdirSync(dataFolderPath, { recursive: true });
-    if (!fs.existsSync(dataFilePath)) {
-      await fsPromises.writeFile(dataFilePath, JSON.stringify({ registrants: [] }, null, 2));
-    }
+    const bytes = await receipt.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-    // Read existing registrants
-    const rawFile = await fsPromises.readFile(dataFilePath, "utf-8");
-    const fileData = rawFile ? JSON.parse(rawFile) : { registrants: [] };
+    const fileExt = path.extname(receipt.name);
+    const fileName = `${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}${fileExt}`;
 
-    // Generate new ID
-    const newId =
-      fileData.registrants.length > 0
-        ? Math.max(...fileData.registrants.map((r: any) => r.id)) + 1
-        : 1;
+    const filePath = path.join(uploadDir, fileName);
+    await fs.writeFile(filePath, buffer);
 
-    const newRegistrant: Registrant = {
-      id: newId,
-      firstname,
-      lastname,
+    /**
+     * Read existing registrants.json
+     */
+    const dataFilePath = path.join(
+      process.cwd(),
+      "data/registrants.json"
+    );
+
+    const jsonData = await fs.readFile(dataFilePath, "utf-8");
+    const parsed = JSON.parse(jsonData);
+
+    /**
+     * Append new registration
+     */
+    const newRegistrant = {
+      id: crypto.randomUUID(),
+      firstName,
+      lastName,
+      email,
       contactNumber,
       chapter,
-      email,
-      filename: file.name,
+      receiptUrl: `/uploads/receipts/${fileName}`,
+      createdAt: new Date().toISOString(),
     };
 
-    fileData.registrants.push(newRegistrant);
+    parsed.registrants.push(newRegistrant);
 
-    // Save updated JSON
-    await fsPromises.writeFile(dataFilePath, JSON.stringify(fileData, null, 2));
+    /**
+     * Save back to file
+     */
+    await fs.writeFile(
+      dataFilePath,
+      JSON.stringify(parsed, null, 2)
+    );
 
     return NextResponse.json(
-      { message: "Registrant added successfully", registrant: newRegistrant },
+      { message: "Registration successful", registrant: newRegistrant },
       { status: 201 }
     );
-  } catch (err: any) {
-    console.error("POST Error:", err);
+  } catch (error) {
+    console.error("Registration error:", error);
+
     return NextResponse.json(
-      { message: "Failed to register", error: err.message },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

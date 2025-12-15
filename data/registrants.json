@@ -114,55 +114,16 @@
       "chapter": "chapter3",
       "email": "borlongany@students.nu-fairview.edu.ph",
       "filename": "travel.png"
-<<<<<<< HEAD
-=======
     },
     {
-      "id": 13,
-      "firstname": "Yumi",
-      "lastname": "Tets",
-      "contactNumber": "0916345267187",
-      "chapter": "Catalyst",
-      "email": "borlongany@students.nu-fairview.edu.ph",
-      "filename": "travel.png"
-      "firstname": "Miguel",
-      "lastname": "Santos",
-      "contactNumber": "09223334444",
-      "chapter": "BNI",
-      "email": "miguel@test.com",
-      "filename": "file2.jpg",
-      "timestamp": "2025-11-22T03:30:00.000Z"
->>>>>>> 83202b66e3fe726c6bdc02e28dbb398fd1688f3d
-    },
-    {
-      "id": 3,
-      "firstname": "Adrian TEST3",
-      "lastname": "Reyes",
-      "contactNumber": "09335556666",
-      "chapter": "BNI",
-      "email": "adriantest3@mail.com",
-      "filename": "file3.jpg",
-      "timestamp": "2025-11-22T03:35:00.000Z"
-    },
-    {
-      "id": 4,
-      "firstname": "Carlos",
-      "lastname": "Garcia",
-      "contactNumber": "09446667777",
-      "chapter": "BNI",
-      "email": "carlos@test.com",
-      "filename": "file4.jpg",
-      "timestamp": "2025-11-22T03:40:00.000Z"
-    },
-    {
-      "id": 5,
-      "firstname": "aidputtest4",
-      "lastname": "adriantesting",
-      "contactNumber": "09557778888",
-      "chapter": "BNI",
-      "email": "liza@test.com",
-      "filename": "file5.jpg",
-      "timestamp": "2025-11-22T03:45:00.000Z"
+      "id": "3de2c99d-2898-421c-ba8a-591a0a0d463a",
+      "firstName": "dddddd",
+      "lastName": "Hernaez",
+      "email": "hernaezadrian55@gmail.com",
+      "contactNumber": "09999999999",
+      "chapter": "All Star",
+      "receiptUrl": "/uploads/receipts/1765821752441-pprw4y3zuzs.jpg",
+      "createdAt": "2025-12-15T18:02:32.445Z"
     }
   ],
   "chapters": [
