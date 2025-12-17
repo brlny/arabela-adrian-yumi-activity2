@@ -46,7 +46,7 @@ const fields: FieldConfig[] = [
     label: 'First Name', 
     placeholder: 'John', 
     type: 'text', 
-    regex: /^[a-zA-Z]{2,30}$/, 
+    regex: /^(?=.{2,30}$)[A-Za-z]+(?:\s[A-Za-z]+)*$/, 
     emptyMsg: 'First Name is required.', 
     invalidMsg: 'First Name must be 2-30 alphabetic characters.', 
     required: true 
@@ -55,7 +55,7 @@ const fields: FieldConfig[] = [
     label: 'Last Name', 
     placeholder: 'Doe', 
     type: 'text', 
-    regex: /^[a-zA-Z]{2,30}$/, 
+    regex: /^(?=.{2,30}$)[A-Za-z]+(?:\s[A-Za-z]+)*$/, 
     emptyMsg: 'Last Name is required.', 
     invalidMsg: 'Last Name must be 2-30 alphabetic characters.', 
     required: true 
